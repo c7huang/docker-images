@@ -18,6 +18,7 @@ RUN conda install -c pytorch-lts \
         pytorch-lightning \
         captum \
         && \
+    pip install spconv-cu102 && \
     pip install mmcv-full \
         -f https://download.openmmlab.com/mmcv/dist/${MMCV_VERSION}/index.html  && \
 
