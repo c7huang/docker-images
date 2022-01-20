@@ -10,7 +10,6 @@ ARG MMCV_VERSION=cu102/torch1.8.0
 RUN conda install -c pytorch-lts \
         pytorch \
         torchvision \
-        torchaudio \
         cudatoolkit=10.2 \
         && \
     conda install -c conda-forge \

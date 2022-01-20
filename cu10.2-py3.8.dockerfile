@@ -41,8 +41,6 @@ RUN set -x && \
         h5py \
         pyyaml \
         protobuf \
-        fire \
-        easydict \
         pybind11 \
 
         numpy \
@@ -56,8 +54,6 @@ RUN set -x && \
 
         jupyterlab \
         && \
-    
-    pip install opencv-python pyquaternion && \
 
 # ------------------------------------------------------------------------------
 # config & cleanup

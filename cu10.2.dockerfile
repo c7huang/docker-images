@@ -29,7 +29,6 @@ RUN apt-get update -q && \
         build-essential \
         software-properties-common \
         libgl1 \
-        libboost-all-dev \
         && \
 
 # ------------------------------------------------------------------------------
