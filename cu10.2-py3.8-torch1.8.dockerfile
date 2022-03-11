@@ -1,25 +1,27 @@
 FROM c7huang/devel:cu10.2-py3.8
-ENV LANG C.UTF-8
 
-ARG MMCV_VERSION=cu102/torch1.8.0
+# LTS Torch version: https://pytorch.org/get-started/locally/
+ARG TORCH_VERSION=1.8
+# Torchvision version: https://github.com/pytorch/vision
+ARG TORCHVISION_VERSION=0.9
+# Torchaudio version: https://github.com/pytorch/audio
+ARG TORCHAUDIO_VERSION=0.8
 
 # ------------------------------------------------------------------------------
 # PyTorch
+# https://pytorch.org/get-started/locally/
 # ------------------------------------------------------------------------------
 
 RUN conda install -c pytorch-lts \
-        pytorch \
-        torchvision \
-        cudatoolkit=10.2 \
+        pytorch=${TORCH_VERSION} \
+        torchvision=${TORCHVISION_VERSION} \
+        torchaudio=${TORCHAUDIO_VERSION} \
+        cudatoolkit=$(echo ${CU_VERSION} | tr -d '\.') \
         && \
     conda install -c conda-forge \
         skorch \
         pytorch-lightning \
-        captum \
         && \
-    pip install spconv-cu102 && \
-    pip install mmcv-full \
-        -f https://download.openmmlab.com/mmcv/dist/${MMCV_VERSION}/index.html  && \
 
 # ------------------------------------------------------------------------------
 # config & cleanup

@@ -1,7 +1,7 @@
 FROM nvidia/cuda:10.2-cudnn8-devel-ubuntu18.04
 ENV LANG C.UTF-8
 
-ARG CMAKE_VERSION=3.22.1
+ARG CMAKE_VERSION=3.22.3
 
 RUN apt-get update -q && \
 

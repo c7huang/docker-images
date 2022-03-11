@@ -1,8 +1,7 @@
 FROM c7huang/devel:cu10.2
-ENV LANG C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
 
-ARG CONDA_VERSION=py38_4.10.3
+ARG CONDA_VERSION=py38_4.11.0
 
 # ------------------------------------------------------------------------------
 # miniconda

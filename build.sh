@@ -1,3 +1,16 @@
-docker build -t c7huang/devel:cu10.2 -f cu10.2.dockerfile . && \
-docker build -t c7huang/devel:cu10.2-py3.8 -f cu10.2-py3.8.dockerfile . && \
-docker build -t c7huang/devel:cu10.2-py3.8-torch1.8 -f cu10.2-py3.8-torch1.8.dockerfile .
+#! /bin/bash
+
+tag=$1
+sep='-'
+
+# split string into array by separator
+arr=($(echo ${tag} | tr ${sep} '\n'))
+
+# loop over array and append
+sub=''
+for index in ${!arr[@]}
+do
+    sub+="${arr[index]}"
+    docker build -t c7huang/devel:${sub} -f ${sub}.dockerfile .
+    sub+="${sep}"
+done
