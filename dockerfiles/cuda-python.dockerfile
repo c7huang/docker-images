@@ -1,15 +1,22 @@
-FROM c7huang/devel:cu10.2
+ARG REPO_NAME
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG CONDA_VERSION
+
+FROM ${REPO_NAME}:cu${CUDA_VERSION}
 ENV PATH /opt/conda/bin:$PATH
 
-ARG CONDA_VERSION=py38_4.11.0
+ARG PYTHON_VERSION
+ARG CONDA_VERSION
 
 # ------------------------------------------------------------------------------
 # miniconda
-# https://github.com/ContinuumIO/docker-images
+# https://github.com/ContinuumIO/docker-images/blob/master/miniconda3/debian/Dockerfile
 # ------------------------------------------------------------------------------
 
 RUN set -x && \
     UNAME_M="$(uname -m)" && \
+    CONDA_VERSION="py$(echo ${PYTHON_VERSION} | tr -d \.)_${CONDA_VERSION}" && \
     if [ "${UNAME_M}" = "x86_64" ]; then \
         MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh"; \
     elif [ "${UNAME_M}" = "s390x" ]; then \
@@ -35,23 +42,29 @@ RUN set -x && \
 # essential libraries
 # ------------------------------------------------------------------------------
 
-    conda install -c conda-forge \
-        numba \
-        h5py \
+    conda install \
+        # file formats
         pyyaml \
-        protobuf \
-        pybind11 \
+        h5py \
 
+        # maths & data
         numpy \
         scipy \
-        scikit-image \
         scikit-learn \
-        pillow \
         pandas \
-        seaborn \
-        matplotlib \
 
+        # image processing
+        pillow \
+        scikit-image \
+
+        # plotting
+        matplotlib \
+        seaborn \
+
+        # jupyter
         jupyterlab \
+
+        -c conda-forge \
         && \
 
 # ------------------------------------------------------------------------------

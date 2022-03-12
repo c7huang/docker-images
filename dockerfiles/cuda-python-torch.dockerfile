@@ -1,26 +1,29 @@
-FROM c7huang/devel:cu10.2-py3.8
+ARG REPO_NAME
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG TORCH_VERSION
 
-# LTS Torch version: https://pytorch.org/get-started/locally/
-ARG TORCH_VERSION=1.8
-# Torchvision version: https://github.com/pytorch/vision
-ARG TORCHVISION_VERSION=0.9
-# Torchaudio version: https://github.com/pytorch/audio
-ARG TORCHAUDIO_VERSION=0.8
+FROM ${REPO_NAME}:cu${CUDA_VERSION}-py${PYTHON_VERSION}
+
+ARG CUDA_VERSION
+ARG TORCH_VERSION
 
 # ------------------------------------------------------------------------------
 # PyTorch
 # https://pytorch.org/get-started/locally/
 # ------------------------------------------------------------------------------
 
-RUN conda install -c pytorch-lts \
+RUN conda install \
         pytorch=${TORCH_VERSION} \
-        torchvision=${TORCHVISION_VERSION} \
-        torchaudio=${TORCHAUDIO_VERSION} \
-        cudatoolkit=$(echo ${CU_VERSION} | tr -d '\.') \
+        torchvision \
+        torchaudio \
+        cudatoolkit=${CUDA_VERSION} \
+        -c pytorch -c nvidia \
         && \
-    conda install -c conda-forge \
+    conda install \
         skorch \
         pytorch-lightning \
+        -c conda-forge \
         && \
 
 # ------------------------------------------------------------------------------
