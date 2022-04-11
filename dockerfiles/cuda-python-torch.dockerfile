@@ -1,12 +1,11 @@
-ARG REPO_NAME
-ARG CUDA_VERSION
-ARG PYTHON_VERSION
-ARG TORCH_VERSION
+ARG REPO
+ARG BASE
 
-FROM ${REPO_NAME}:cu${CUDA_VERSION}-py${PYTHON_VERSION}
+FROM ${REPO}:${BASE}
 
-ARG CUDA_VERSION
 ARG TORCH_VERSION
+ARG TORCHVISION_VERSION
+ARG TORCHAUDIO_VERSION
 
 # ------------------------------------------------------------------------------
 # PyTorch
@@ -15,9 +14,9 @@ ARG TORCH_VERSION
 
 RUN conda install \
         pytorch=${TORCH_VERSION} \
-        torchvision \
-        torchaudio \
-        cudatoolkit=${CUDA_VERSION} \
+        torchvision=${TORCHVISION_VERSION} \
+        torchaudio=${TORCHAUDIO_VERSION} \
+        cudatoolkit=${CUDA_VERSION%.*} \
         -c pytorch -c nvidia \
         && \
     conda install \
@@ -25,6 +24,7 @@ RUN conda install \
         pytorch-lightning \
         -c conda-forge \
         && \
+    conda install tensorboard && \
 
 # ------------------------------------------------------------------------------
 # config & cleanup

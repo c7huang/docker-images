@@ -1,20 +1,9 @@
-ARG REPO_NAME
-ARG CUDA_VERSION
-ARG PYTHON_VERSION
-ARG TORCH_VERSION
+ARG REPO
+ARG BASE
+
+FROM ${REPO}:${BASE}
 
 ARG MMCV_VERSION
-ARG MMCLS_VERSION
-ARG MMSEG_VERSION
-ARG MMDET_VERSION
-ARG MMDET3D_VERSION
-
-FROM ${REPO_NAME}:cu${CUDA_VERSION}-py${PYTHON_VERSION}-torch${TORCH_VERSION}
-
-ARG CUDA_VERSION
-ARG TORCH_VERSION
-ARG MMCV_VERSION
-ARG MMCLS_VERSION
 ARG MMSEG_VERSION
 ARG MMDET_VERSION
 ARG MMDET3D_VERSION
@@ -23,13 +12,16 @@ ARG MMDET3D_VERSION
 # mmdet3d
 # ------------------------------------------------------------------------------
 
-RUN pip install \
+RUN export CU_VERSION=$(echo ${CUDA_VERSION%.*} | tr -d \.) && \
+    export TORCH_VERSION=$(python -c "import torch; print(torch.__version__)") && \
+    export TORCH_VERSION=${TORCH_VERSION%.*} && \
+    pip install \
         mmcv-full==${MMCV_VERSION} \
-        -f https://download.openmmlab.com/mmcv/dist/cu$(echo ${CUDA_VERSION} | tr -d \. | head -c 3)/torch${TORCH_VERSION}/index.html && \
+        -f https://download.openmmlab.com/mmcv/dist/cu${CU_VERSION}/torch${TORCH_VERSION}/index.html && \
 
 
     pip install \
-        mmcls==${MMCLS_VERSION} \
+        open3d \
         mmsegmentation==${MMSEG_VERSION} \
         mmdet==${MMDET_VERSION} \
         && \

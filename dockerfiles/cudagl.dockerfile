@@ -1,10 +1,11 @@
 ARG CUDA_VERSION
-ARG CUDNN_VERSION
 ARG UBUNTU_VERSION
 
-FROM nvidia/cuda:${CUDA_VERSION}-cudnn${CUDNN_VERSION}-devel-ubuntu${UBUNTU_VERSION}
+# Use cudagl to support OpenGL applications in docker (e.g., Open3D)
+FROM nvidia/cudagl:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
 ENV LANG C.UTF-8
 
+ARG CUDNN_VERSION
 ARG CMAKE_VERSION
 
 RUN apt-get update -q && \
@@ -34,6 +35,17 @@ RUN apt-get update -q && \
         software-properties-common \
         libgl1 \
         && \
+
+# ------------------------------------------------------------------------------
+# CUDNN
+# https://gitlab.com/nvidia/container-images/cuda
+# ------------------------------------------------------------------------------
+
+    DEBIAN_FRONTEND=noninteractive apt-get install -q -y --no-install-recommends \
+        libcudnn${CUDNN_VERSION}=*-1+cuda${CUDA_VERSION%.*} \
+        libcudnn${CUDNN_VERSION}-dev=*-1+cuda${CUDA_VERSION%.*} \
+        && \
+    apt-mark hold libcudnn${CUDNN_VERSION} && \
 
 # ------------------------------------------------------------------------------
 # cmake
