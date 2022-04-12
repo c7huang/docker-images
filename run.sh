@@ -2,8 +2,10 @@
 
 usage () {
     printf "\
-Usage: $0 -i <IMAGE> [OPTIONS]
-       $0 -c <CONTAINER> [OPTIONS]
+Usage: $0 -h
+       $0 --help
+       $0 [CONFIG] -i <IMAGE> [OPTIONS]
+       $0 [CONFIG] -c <CONTAINER> [OPTIONS]
 
 Helper script to start new containers or run commands in existing containers.
 
@@ -67,7 +69,8 @@ check_port () {
 }
 
 load_config () {
-    source run.conf
+    source $1
+    check_return "Invalid config file: $1"
     image=$default_image
     workspace=$default_workspace
     task=$default_task
@@ -77,6 +80,23 @@ load_config () {
 }
 
 parse_args () {
+    if [[ $1 == "-h" || $1 == "--help" ]]; then
+        usage
+    fi
+
+    if [[ $1 == "-"* ]]; then
+        warning "You did not specify a config file. Enter it here OR skip to use the default 'run.conf'."
+        read -p "> " config_file
+        if  [[ $config_file == "" ]]; then
+            warning "Using 'run.conf'"
+            config_file="run.conf"
+        fi
+    else
+        config_file=$1
+        shift
+    fi
+    load_config $config_file
+
     while [[ $# -gt 0 ]]; do
         case $1 in
             -i|--image)         image="$2"          ; shift ;;
@@ -89,8 +109,7 @@ parse_args () {
             --tb-args)          tb_args="$2"        ; shift ;;
             --tb-port)          tb_port=$2          ; shift ;;
             --tb-logdir)        tb_logdir="$2"      ; shift ;;
-            -v|--verbose)       verbose=0           ; shift ;;
-            -h|--help)          usage               ;;
+            -v|--verbose)       verbose=0           ;;
             *)
                 error "Unknown option $1"
                 usage
@@ -191,7 +210,6 @@ set_task_cmd_and_args () {
 }
 
 main () {
-    load_config
     parse_args "$@"
     check_args
     set_docker_cmd_and_args
