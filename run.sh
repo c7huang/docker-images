@@ -35,22 +35,30 @@ Tensorboard options:
 }
 
 success () {
-    printf "\x1B[32m$1\x1B[0m\n"
+    printf "\x1B[32m$1\x1B[0m"
 }
 
 warning () {
-    printf "\x1B[33m$1\x1B[0m\n"
+    printf "\x1B[33m$1\x1B[0m"
 }
 
 error () {
-    printf "\x1B[31m$1\x1B[0m\n"
+    printf "\x1B[31m$1\x1B[0m"
+}
+
+yes_no_prompt () {
+    read -p "$1" res
+    case ${res,,} in
+        y|yes)      return 0 ;;
+        *)          return 1 ;;
+    esac
 }
 
 check_return () {
     ret=$?
     if [[ $ret -ne 0 ]]; then
         if [[ $1 != "" ]]; then
-            error "$1"
+            error "$1\n"
         fi
         exit $ret
     fi
@@ -59,11 +67,11 @@ check_return () {
 check_port () {
     re='^[0-9]+$'
     if ! [[ $1 =~ $re ]] ; then
-        error "Invalid port $1"
+        error "Invalid port $1\n"
         exit 1
     fi
     if [[ $1 -lt 1 || $1 -gt 65535 ]] ; then
-        error "Invalid port $1"
+        error "Invalid port $1\n"
         exit 1
     fi
 }
@@ -71,6 +79,7 @@ check_port () {
 load_config () {
     source $1
     check_return "Invalid config file: $1"
+    container=$default_container
     image=$default_image
     workspace=$default_workspace
     task=$default_task
@@ -85,10 +94,10 @@ parse_args () {
     fi
 
     if [[ $1 == "-"* ]]; then
-        warning "You did not specify a config file. Enter it here OR skip to use the default 'run.conf'."
-        read -p "> " config_file
+        warning "Please specify a config file (default 'run.conf'): "
+        read config_file
         if  [[ $config_file == "" ]]; then
-            warning "Using 'run.conf'"
+            warning "Using 'run.conf'\n"
             config_file="run.conf"
         fi
     else
@@ -111,7 +120,7 @@ parse_args () {
             --tb-logdir)        tb_logdir="$2"      ; shift ;;
             -v|--verbose)       verbose=0           ;;
             *)
-                error "Unknown option $1"
+                error "Unknown option $1\n"
                 usage
                 ;;
         esac
@@ -122,7 +131,7 @@ parse_args () {
 check_args () {
     if [[ $image == "" && $container == "" ]]; then
         error "One of 'image' (-i or --image) or 'container' \
-(-c or --container) must be specified."
+(-c or --container) must be specified.\n"
         usage
     fi
 
@@ -148,28 +157,57 @@ inject_variables () {
     echo $str
 }
 
+
+set_docker_run_cmd_and_args () {
+    # Start a new docker container from specified image
+    default_docker_run_args=$(inject_variables "$default_docker_run_args")
+    docker_args="$default_docker_run_args $docker_args"
+    docker_cmd="docker run"
+    docker_target=$image
+}
+
+set_docker_exec_cmd_and_args () {
+    # Run command from an existing docker container
+    default_docker_exec_args=$(inject_variables "$default_docker_exec_args")
+    docker_args="$default_docker_exec_args $docker_args"
+    docker_cmd="docker exec"
+    docker_target=$container
+}
+
+set_docker_cmd_and_args () {
+    if [[ $container != "" ]]; then
+        docker container inspect $container > /dev/null 2>&1
+        if [[ $? -ne 0 ]]; then
+            warning "Container '$container' does not exist, \
+start a new one with config '$config_file'? (Yes/[No]) "
+            yes_no_prompt
+            if [[ $? ]]; then
+                set_docker_run_cmd_and_args
+            fi
+        else
+            docker container inspect $container | grep "\"Running\": true" > /dev/null 2>&1
+            if [[ $? -ne 0 ]]; then
+                warning "Container '$container' is not running, \
+start the container using 'docker start'? (Yes/[No]) "
+                yes_no_prompt
+                if [[ $? ]]; then
+                    docker start $container
+                    check_return "Fail to start container '$container'"
+                fi
+            fi
+            set_docker_exec_cmd_and_args
+        fi
+    elif [[ $image != "" ]]; then
+        set_docker_run_cmd_and_args
+    fi
+}
+
 set_interactive () {
     if [[ $docker_args != *" -i"* &&  \
           $docker_args != *" --interactive"* && \
           $docker_args != *" -d"* && \
           $docker_args != *" --detach"* ]]; then
         docker_args="$docker_args $1"
-    fi
-}
-
-set_docker_cmd_and_args () {
-    if [[ $container != "" ]]; then
-        # Run command from an existing docker container
-        default_docker_exec_args=$(inject_variables "$default_docker_exec_args")
-        docker_args="$default_docker_exec_args $docker_args"
-        docker_cmd="docker exec"
-        docker_target=$container
-    elif [[ $image != "" ]]; then
-        # Start a new docker container from specified image
-        default_docker_run_args=$(inject_variables "$default_docker_run_args")
-        docker_args="$default_docker_run_args $docker_args"
-        docker_cmd="docker run"
-        docker_target=$image
     fi
 }
 
@@ -216,7 +254,7 @@ main () {
     set_task_cmd_and_args
     docker_cmd="$docker_cmd $docker_args $docker_target $task_cmd"
     if [[ $verbose ]]; then
-        warning "$docker_cmd"
+        warning "$docker_cmd\n"
     fi
     $docker_cmd
     check_return "Docker command: $docker_cmd"
