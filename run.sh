@@ -147,13 +147,13 @@ check_args () {
 
 inject_variables () {
     str=$1
-    str=${str/\%image/$image}
-    str=${str/\%container/$container}
-    str=${str/\%workspace/$workspace}
-    str=${str/\%task/$task}
-    str=${str/\%jupyter_port/$jupyter_port}
-    str=${str/\%tb_port/$tb_port}
-    str=${str/\%tb_logdir/$tb_logdir}
+    str=${str//\%image/$image}
+    str=${str//\%container/$container}
+    str=${str//\%workspace/$workspace}
+    str=${str//\%task/$task}
+    str=${str//\%jupyter_port/$jupyter_port}
+    str=${str//\%tb_port/$tb_port}
+    str=${str//\%tb_logdir/$tb_logdir}
     echo $str
 }
 
@@ -181,8 +181,11 @@ set_docker_cmd_and_args () {
             warning "Container '$container' does not exist, \
 start a new one with config '$config_file'? (Yes/[No]) "
             yes_no_prompt
-            if [[ $? ]]; then
+            if [[ $? -eq 0 ]]; then
                 set_docker_run_cmd_and_args
+            else
+                error "Abort!\n"
+                exit 1
             fi
         else
             docker container inspect $container | grep "\"Running\": true" > /dev/null 2>&1
@@ -190,9 +193,12 @@ start a new one with config '$config_file'? (Yes/[No]) "
                 warning "Container '$container' is not running, \
 start the container using 'docker start'? (Yes/[No]) "
                 yes_no_prompt
-                if [[ $? ]]; then
+                if [[ $? -eq 0 ]]; then
                     docker start $container
                     check_return "Fail to start container '$container'"
+                else
+                    error "Abort!\n"
+                    exit 1
                 fi
             fi
             set_docker_exec_cmd_and_args
