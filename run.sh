@@ -135,11 +135,23 @@ check_args () {
         usage
     fi
 
+    if [[ $workspace == "" ]]; then
+        workspace=.
+    fi
     workspace=$(cd "$workspace" && pwd)
     check_return
 
+    if [[ $tb_logdir == "" ]]; then
+        tb_logdir=/tmp/run.sh/tb_logdir-$RANDOM
+        mkdir -p $tb_logdir
+    fi
     tb_logdir=$(cd "$tb_logdir" && pwd)
     check_return
+    
+    if [[ $workspace == $tb_logdir ]]; then
+        error "'workspace' and 'tb_logdir' cannot be the same!\n"
+        exit 1
+    fi
 
     check_port $jupyter_port
     check_port $tb_port
