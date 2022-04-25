@@ -35,15 +35,18 @@ Tensorboard options:
 }
 
 success () {
-    printf "\x1B[32m$1\x1B[0m"
+    msg=$(echo $1 | sed 's/%/%%/g')
+    printf "\x1B[32m$msg\x1B[0m"
 }
 
 warning () {
-    printf "\x1B[33m$1\x1B[0m"
+    msg=$(echo $1 | sed 's/%/%%/g')
+    printf "\x1B[33m$msg\x1B[0m"
 }
 
 error () {
-    printf "\x1B[31m$1\x1B[0m"
+    msg=$(echo $1 | sed 's/%/%%/g')
+    printf "\x1B[31m$msg\x1B[0m"
 }
 
 yes_no_prompt () {
@@ -141,18 +144,6 @@ check_args () {
     workspace=$(cd "$workspace" && pwd)
     check_return
 
-    if [[ $tb_logdir == "" ]]; then
-        tb_logdir=/tmp/run.sh/tb_logdir-$RANDOM
-        mkdir -p $tb_logdir
-    fi
-    tb_logdir=$(cd "$tb_logdir" && pwd)
-    check_return
-    
-    if [[ $workspace == $tb_logdir ]]; then
-        error "'workspace' and 'tb_logdir' cannot be the same!\n"
-        exit 1
-    fi
-
     check_port $jupyter_port
     check_port $tb_port
 }
@@ -172,6 +163,22 @@ inject_variables () {
 
 set_docker_run_cmd_and_args () {
     # Start a new docker container from specified image
+    default_docker_run_args=$(echo "$default_docker_run_args " | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g')
+
+    # To avoid double mounting, create a symlink of $HOME to $TMP_HOME
+    if [[ $workspace == $HOME ]]; then
+        warning "It's not recommended to set home directory ($HOME) as workspace. Proceed anyway? (Yes/[No]) "
+        yes_no_prompt
+        if [[ $? -eq 0 ]]; then
+            reg_home=$(echo $HOME | sed 's/\//\\\//g')
+            reg="s/\(-v\|--volume\)\(\s\+\|=\)\+\(\([^:[:space:]]\+\)\|\([\"'].\+[\"']\)\):[\"']\?$reg_home\/\?[\"']\?\(\(:[a-zA-Z]\+\)\|\)\s//g"
+            default_docker_run_args=$(echo "$default_docker_run_args" | sed -e $reg)
+        else
+            error "Abort!\n"
+            exit 1
+        fi
+    fi
+
     default_docker_run_args=$(inject_variables "$default_docker_run_args")
     docker_args="$default_docker_run_args $docker_args"
     docker_cmd="docker run"
