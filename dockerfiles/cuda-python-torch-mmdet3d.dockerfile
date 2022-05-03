@@ -26,6 +26,9 @@ RUN export CU_VERSION=$(echo ${CUDA_VERSION%.*} | tr -d \.) && \
         mmdet==${MMDET_VERSION} \
         && \
     
+    conda install -c conda-forge qhull==2019.1 && \
+    conda install -c conda-forge -c davidcaron pclpy && \
+    
     git clone https://github.com/open-mmlab/mmdetection3d.git ~/mmdet3d && \
     cd ~/mmdet3d && \
     git checkout tags/v${MMDET3D_VERSION} && \
