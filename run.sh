@@ -157,7 +157,7 @@ inject_variables () {
     str=${str//\%jupyter_port/$jupyter_port}
     str=${str//\%tb_port/$tb_port}
     str=${str//\%tb_logdir/$tb_logdir}
-    echo $str
+    echo "$str"
 }
 
 
