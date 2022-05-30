@@ -14,7 +14,9 @@ ARG CONDA_VERSION
 
 RUN set -x && \
     UNAME_M="$(uname -m)" && \
-    CONDA_VERSION="py$(echo ${PYTHON_VERSION} | tr -d \.)_${CONDA_VERSION}" && \
+    if [ "${CONDA_VERSION}" != "latest" ]; then \
+        CONDA_VERSION="py$(echo ${PYTHON_VERSION} | tr -d \.)_${CONDA_VERSION}"; \
+    fi && \
     if [ "${UNAME_M}" = "x86_64" ]; then \
         MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh"; \
     elif [ "${UNAME_M}" = "s390x" ]; then \
@@ -41,6 +43,8 @@ RUN set -x && \
 # ------------------------------------------------------------------------------
 
     conda install \
+        python=${PYTHON_VERSION} \
+
         # file formats
         pyyaml \
         h5py \
@@ -64,6 +68,16 @@ RUN set -x && \
 
         -c conda-forge \
         && \
+
+
+# ------------------------------------------------------------------------------
+# nodejs (required by jupyter plugins)
+# https://github.com/nodesource/distributions/blob/master/README.md
+# ------------------------------------------------------------------------------
+
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -q -y --no-install-recommends nodejs && \
+
 
 # ------------------------------------------------------------------------------
 # config & cleanup

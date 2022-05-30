@@ -6,6 +6,7 @@ FROM ${REPO}:${BASE}
 ARG MMCV_VERSION
 ARG MMSEG_VERSION
 ARG MMDET_VERSION
+ARG MMDET3D_VERSION
 
 # ------------------------------------------------------------------------------
 # mmdet3d dependencies
@@ -25,8 +26,10 @@ RUN export CU_VERSION=$(echo ${CUDA_VERSION%.*} | tr -d \.) && \
         mmdet==${MMDET_VERSION} \
         && \
 
-    conda install -c conda-forge qhull==2019.1 && \
-    conda install -c conda-forge -c davidcaron pclpy && \
+    git clone --depth=1 --single-branch --recursive --branch v${MMDET3D_VERSION} \
+    https://github.com/open-mmlab/mmdetection3d.git ~/mmdet3d && \
+    pip install -r ~/mmdet3d/requirements/build.txt && \
+    pip install -r ~/mmdet3d/requirements/runtime.txt && \
 
 
 # ------------------------------------------------------------------------------

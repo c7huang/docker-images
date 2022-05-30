@@ -5,10 +5,16 @@ ARG UBUNTU_VERSION
 FROM nvidia/cudagl:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
 ENV LANG C.UTF-8
 
+ARG UBUNTU_VERSION
 ARG CUDNN_VERSION
-ARG CMAKE_VERSION
 
-RUN apt-get update -q && \
+# ------------------------------------------------------------------------------
+# NVIDIA key rotation
+# https://forums.developer.nvidia.com/t/notice-cuda-linux-repository-key-rotation/212771
+# ------------------------------------------------------------------------------
+
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu$(echo $UBUNTU_VERSION | tr -d \.)/x86_64/3bf863cc.pub && \
+    apt-get update -q && \
 
 # ------------------------------------------------------------------------------
 # tools
@@ -47,22 +53,6 @@ RUN apt-get update -q && \
         && \
     apt-mark hold libcudnn${CUDNN_VERSION} && \
 
-# ------------------------------------------------------------------------------
-# cmake
-# https://cmake.org/download/
-# ------------------------------------------------------------------------------
-
-    wget -O ~/cmake.sh -q \
-        https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
-    bash ~/cmake.sh --skip-license --prefix=/usr --exclude-subdir && \
-
-# ------------------------------------------------------------------------------
-# nodejs
-# https://github.com/nodesource/distributions/blob/master/README.md
-# ------------------------------------------------------------------------------
-
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -q -y --no-install-recommends nodejs && \
 
 # ------------------------------------------------------------------------------
 # config & cleanup

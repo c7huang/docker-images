@@ -4,7 +4,9 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 def build(repo, tag):
     config = ConfigParser(interpolation=ExtendedInterpolation())
-    config.read(f'tags/{tag}.ini')
+    # Try open it
+    with open(f'tags/{tag}.ini', 'r') as f:
+        config.read(f'tags/{tag}.ini')
 
     # Build base image recursively
     if config.has_option('config', 'base'):
