@@ -22,9 +22,9 @@ RUN conda install \
     conda install \
         skorch \
         pytorch-lightning \
+        tensorboard \
         -c conda-forge \
         && \
-    conda install tensorboard && \
 
 # ------------------------------------------------------------------------------
 # config & cleanup

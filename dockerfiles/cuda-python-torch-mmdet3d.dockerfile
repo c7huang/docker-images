@@ -24,12 +24,8 @@ RUN export CU_VERSION=$(echo ${CUDA_VERSION%.*} | tr -d \.) && \
         open3d \
         mmsegmentation==${MMSEG_VERSION} \
         mmdet==${MMDET_VERSION} \
+        mmdet3d==${MMDET3D_VERSION} \
         && \
-    
-    git clone --depth=1 --single-branch --recursive --branch v${MMDET3D_VERSION} \
-    https://github.com/open-mmlab/mmdetection3d.git ~/mmdet3d && \
-    pip install -v ~/mmdet3d && \
-
 
 # ------------------------------------------------------------------------------
 # config & cleanup

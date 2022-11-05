@@ -66,7 +66,7 @@ RUN set -x && \
         # jupyter
         jupyterlab \
 
-        # -c conda-forge \
+        -c conda-forge \
         && \
 
 
